@@ -1,13 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider, yahooProvider, microsoftProvider } from '../lib/firebase';
+import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signInWithYahoo: () => Promise<void>;
-  signInWithMicrosoft: () => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -31,16 +30,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return unsubscribe;
   }, []);
 
-  const signInWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+  const signUp = async (email: string, password: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(userCredential.user);
   };
 
-  const signInWithYahoo = async () => {
-    await signInWithPopup(auth, yahooProvider);
-  };
-
-  const signInWithMicrosoft = async () => {
-    await signInWithPopup(auth, microsoftProvider);
+  const signIn = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signOut = () => auth.signOut();
@@ -48,9 +44,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     loading,
-    signInWithGoogle,
-    signInWithYahoo,
-    signInWithMicrosoft,
+    signUp,
+    signIn,
     signOut,
   };
 

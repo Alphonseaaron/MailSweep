@@ -7,8 +7,10 @@ const GMAIL_CONFIG = {
   clientSecret: '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',
   redirect_uri: window.location.origin + '/dashboard',
   scope: [
-    'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.modify',
+    'https://www.googleapis.com/auth/gmail.settings.basic',
+    'https://www.googleapis.com/auth/gmail.labels',
     'email',
     'profile'
   ]
@@ -23,6 +25,12 @@ export interface GmailMessage {
     headers: {
       name: string;
       value: string;
+    }[];
+    parts?: {
+      mimeType: string;
+      body: {
+        data?: string;
+      };
     }[];
   };
   internalDate: string;
@@ -40,7 +48,9 @@ export async function fetchEmails(accessToken: string): Promise<GmailMessage[]> 
     );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch emails');
+      const error = await response.json();
+      console.error('Gmail API Error:', error);
+      throw new Error(error.error?.message || 'Failed to fetch emails');
     }
 
     const { messages } = await response.json();
@@ -56,6 +66,11 @@ export async function fetchEmails(accessToken: string): Promise<GmailMessage[]> 
             },
           }
         );
+
+        if (!detailResponse.ok) {
+          throw new Error(`Failed to fetch email details for ID: ${message.id}`);
+        }
+
         return detailResponse.json();
       })
     );
@@ -140,7 +155,8 @@ export async function setCredentials(code: string, user: User) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to exchange code for tokens');
+      const error = await response.json();
+      throw new Error(error.error_description || 'Failed to exchange code for tokens');
     }
 
     const tokens = await response.json();
@@ -213,7 +229,8 @@ async function refreshAccessToken(refreshToken: string) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to refresh access token');
+    const error = await response.json();
+    throw new Error(error.error_description || 'Failed to refresh access token');
   }
 
   return response.json();

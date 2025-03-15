@@ -5,7 +5,7 @@ import { User } from 'firebase/auth';
 const GMAIL_CONFIG = {
   clientId: '516439091078-4o68vnqqfcfn48cu16k5oggcc9ep3ed1.apps.googleusercontent.com',
   clientSecret: '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',
-  redirect_uri: window.location.origin + '/dashboard',
+  redirect_uri: 'https://mailsweep-c663e.web.app/dashboard',
   scope: [
     'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.readonly',
